@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>HRis — HR AI Assistant | Himanshu Sharma</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f4f3ef;
+    --surface: #ffffff;
+    --surface2: #f8f7f4;
+    --border: rgba(0,0,0,0.08);
+    --border2: rgba(0,0,0,0.14);
+    --text: #1a1a18;
+    --text2: #6b6b67;
+    --text3: #9b9b96;
+    --green: #1D9E75;
+    --green-light: #E1F5EE;
+    --green-mid: #5DCAA5;
+    --green-dark: #0F6E56;
+    --green-deeper: #085041;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --radius-pill: 100px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 40px;
+    color: var(--text);
+  }
+
+  /* ── Header ── */
+  .page-header {
+    width: 100%;
+    max-width: 680px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand-logo {
+    width: 38px; height: 38px; border-radius: 10px;
+    background: var(--green); display: flex; align-items: center; justify-content: center;
+  }
+  .brand-logo svg { width: 20px; height: 20px; }
+  .brand-name { font-size: 18px; font-weight: 600; letter-spacing: -0.3px; }
+  .brand-name span { color: var(--green); }
+  .badge {
+    font-size: 11px; font-weight: 500; padding: 4px 10px;
+    background: var(--green-light); color: var(--green-dark);
+    border-radius: var(--radius-pill); border: 1px solid rgba(29,158,117,0.2);
+  }
+  .by-line {
+    font-size: 11px; color: var(--text3);
+    display: flex; align-items: center; gap: 4px;
+  }
+  .by-line a { color: var(--green); text-decoration: none; font-weight: 500; }
+
+  /* ── Chat card ── */
+  #bot-wrap {
+    width: 100%; max-width: 680px;
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    height: 600px;
+    box-shadow: 0 2px 24px rgba(0,0,0,0.06);
+    overflow: hidden;
+  }
+
+  /* ── Bot header ── */
+  #bot-header {
+    padding: 14px 18px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px;
+    flex-shrink: 0;
+  }
+  #bot-avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: var(--green-light);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  #bot-avatar svg { width: 20px; height: 20px; }
+  #bot-title { font-size: 14px; font-weight: 600; color: var(--text); }
+  #bot-sub { font-size: 12px; color: var(--text2); margin-top: 1px; }
+  .status-row { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+  .status-label { font-size: 11px; color: var(--text2); }
+
+  /* ── Category bar ── */
+  #category-bar {
+    padding: 10px 16px;
+    display: flex; gap: 6px; overflow-x: auto;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    scrollbar-width: none; flex-shrink: 0;
+  }
+  #category-bar::-webkit-scrollbar { display: none; }
+  .cat-btn {
+    font-size: 11px; font-weight: 500; padding: 5px 12px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border2);
+    background: transparent; color: var(--text2);
+    cursor: pointer; white-space: nowrap;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+  }
+  .cat-btn.active, .cat-btn:hover {
+    background: var(--green-light); color: var(--green-dark);
+    border-color: rgba(29,158,117,0.35);
+  }
+
+  /* ── Chat area ── */
+  #chat-area {
+    flex: 1; overflow-y: auto; padding: 18px 16px;
+    display: flex; flex-direction: column; gap: 14px;
+    scroll-behavior: smooth;
+  }
+  #chat-area::-webkit-scrollbar { width: 4px; }
+  #chat-area::-webkit-scrollbar-track { background: transparent; }
+  #chat-area::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+  .msg { display: flex; gap: 8px; align-items: flex-start; max-width: 86%; }
+  .msg.user { align-self: flex-end; flex-direction: row-reverse; }
+  .msg.bot { align-self: flex-start; }
+
+  .msg-icon {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; font-size: 10px; font-weight: 600; margin-top: 2px;
+  }
+  .bot .msg-icon { background: var(--green-light); color: var(--green-dark); }
+  .user .msg-icon { background: var(--green-deeper); color: #9FE1CB; }
+
+  .msg-bubble {
+    padding: 10px 14px; border-radius: 14px;
+    font-size: 13px; line-height: 1.65;
+  }
+  .bot .msg-bubble {
+    background: var(--surface2); color: var(--text);
+    border: 1px solid var(--border);
+    border-bottom-left-radius: 4px;
+  }
+  .user .msg-bubble {
+    background: var(--green); color: #fff;
+    border-bottom-right-radius: 4px;
+  }
+
+  /* typing indicator */
+  .typing {
+    display: flex; align-items: center; gap: 4px;
+    padding: 12px 14px;
+    background: var(--surface2); border-radius: 14px;
+    border-bottom-left-radius: 4px;
+    border: 1px solid var(--border);
+    width: fit-content;
+  }
+  .typing span {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--green-mid);
+    animation: bounce 1.2s infinite;
+  }
+  .typing span:nth-child(2) { animation-delay: 0.2s; }
+  .typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce {
+    0%,60%,100% { transform: translateY(0); }
+    30% { transform: translateY(-5px); }
+  }
+
+  /* ── Quick chips ── */
+  #chips-wrap {
+    padding: 0 16px 12px;
+    display: flex; flex-wrap: wrap; gap: 6px;
+    flex-shrink: 0;
+  }
+  .chip {
+    font-size: 12px; font-weight: 400;
+    padding: 6px 12px; border-radius: var(--radius-pill);
+    border: 1px solid var(--border2);
+    background: var(--surface); color: var(--text2);
+    cursor: pointer; transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
+    white-space: nowrap;
+  }
+  .chip:hover {
+    background: var(--green-light); color: var(--green-dark);
+    border-color: rgba(29,158,117,0.35);
+  }
+
+  /* ── Input row ── */
+  #input-row {
+    padding: 12px 16px; border-top: 1px solid var(--border);
+    display: flex; gap: 8px; background: var(--surface); flex-shrink: 0;
+  }
+  #msg-input {
+    flex: 1; font-size: 13px; padding: 9px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border2);
+    background: var(--surface2); color: var(--text);
+    outline: none; font-family: 'DM Sans', sans-serif;
+    height: 40px; transition: border-color 0.15s;
+  }
+  #msg-input:focus { border-color: var(--green); }
+  #msg-input::placeholder { color: var(--text3); }
+  #send-btn {
+    width: 40px; height: 40px; border-radius: var(--radius-sm);
+    background: var(--green); border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: background 0.15s;
+  }
+  #send-btn:hover { background: var(--green-dark); }
+  #send-btn:active { transform: scale(0.96); }
+  #send-btn svg { width: 16px; height: 16px; }
+
+  /* ── Footer ── */
+  .page-footer {
+    width: 100%; max-width: 680px;
+    margin-top: 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 8px;
+  }
+  .footer-note { font-size: 11px; color: var(--text3); }
+  .footer-note a { color: var(--green); text-decoration: none; }
+  .topics {
+    display: flex; flex-wrap: wrap; gap: 4px;
+  }
+  .topic-tag {
+    font-size: 10px; padding: 3px 8px; border-radius: var(--radius-pill);
+    background: var(--surface2); color: var(--text3);
+    border: 1px solid var(--border);
+  }
+
+  @media (max-width: 480px) {
+    body { padding: 16px 12px 32px; }
+    #bot-wrap { height: calc(100vh - 180px); }
+    .page-header { flex-wrap: wrap; gap: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <div class="brand">
+    <div class="brand-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="8" r="4"/>
+        <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+      </svg>
+    </div>
+    <div>
+      <div class="brand-name">HR<span>is</span></div>
+    </div>
+  </div>
+  <span class="badge">AI-Powered HR Assistant</span>
+  <div class="by-line">
+    Built by <a href="https://linkedin.com/in/himas23" target="_blank">Himanshu Sharma</a>
+  </div>
+</header>
+
+<main id="bot-wrap" role="main" aria-label="HR AI Assistant Chat">
+
+  <div id="bot-header">
+    <div id="bot-avatar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#1D9E75" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="8" r="4"/>
+        <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+      </svg>
+    </div>
+    <div>
+      <div id="bot-title">HRis — Your HR Assistant</div>
+      <div id="bot-sub">Ask me anything about HR policies, leave, payroll & more</div>
+    </div>
+    <div class="status-row">
+      <div class="status-dot"></div>
+      <span class="status-label">Online</span>
+    </div>
+  </div>
+
+  <div id="category-bar" role="navigation" aria-label="HR topic categories">
+    <button class="cat-btn active" onclick="filterCat('all', this)">All topics</button>
+    <button class="cat-btn" onclick="filterCat('leave', this)">Leave & attendance</button>
+    <button class="cat-btn" onclick="filterCat('payroll', this)">Payroll</button>
+    <button class="cat-btn" onclick="filterCat('onboarding', this)">Onboarding</button>
+    <button class="cat-btn" onclick="filterCat('offboarding', this)">Offboarding</button>
+    <button class="cat-btn" onclick="filterCat('policy', this)">Policies</button>
+    <button class="cat-btn" onclick="filterCat('engagement', this)">Engagement</button>
+  </div>
+
+  <div id="chat-area" aria-live="polite" aria-label="Chat messages"></div>
+  <div id="chips-wrap" aria-label="Quick question suggestions"></div>
+
+  <div id="input-row">
+    <input
+      id="msg-input"
+      type="text"
+      placeholder="Ask me anything about HR..."
+      aria-label="Type your HR question"
+      onkeydown="if(event.key==='Enter'){event.preventDefault();sendMsg();}"
+    />
+    <button id="send-btn" onclick="sendMsg()" aria-label="Send message">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="22" y1="2" x2="11" y2="13"/>
+        <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+      </svg>
+    </button>
+  </div>
+</main>
+
+<footer class="page-footer">
+  <p class="footer-note">
+    Built as part of <a href="https://linkedin.com/in/himas23" target="_blank">Himanshu Sharma's</a> HR portfolio · Demonstrating AI in HR
+  </p>
+  <div class="topics">
+    <span class="topic-tag">Leave</span>
+    <span class="topic-tag">Payroll</span>
+    <span class="topic-tag">Onboarding</span>
+    <span class="topic-tag">Offboarding</span>
+    <span class="topic-tag">Policies</span>
+    <span class="topic-tag">Engagement</span>
+  </div>
+</footer>
+
+<script>
+const KB = {
+  leave: {
+    keywords: ['leave','casual','sick','annual','earned','half day','comp off','compensatory','maternity','paternity','privilege','pl','cl','sl','holiday','absence','attend','wfh','work from home','late','half','sabbatical'],
+    responses: {
+      'casual leave': 'Casual Leave (CL): Employees are entitled to 8 casual leaves per year. CL cannot be carried forward to the next year. Apply at least 1 day in advance for planned absences. For emergencies, inform your manager on the same day.',
+      'sick leave': 'Sick Leave (SL): 10 sick leaves per year are provided. A medical certificate is required for absence beyond 2 consecutive days. Unused sick leave can be carried forward up to 30 days.',
+      'annual leave': 'Annual/Earned Leave (EL/PL): 15 days per year, accrued at 1.25 days per month. Can be carried forward up to 30 days. Apply at least 7 days in advance. Encashment allowed at the time of resignation or retirement.',
+      'maternity': 'Maternity Leave: 26 weeks (182 days) as per the Maternity Benefit Act. Applicable after 80 days of employment. Full pay during the leave period. Submit a medical certificate and prior application.',
+      'paternity': 'Paternity Leave: 5 working days within 6 months of the child\'s birth or adoption. Apply at least 1 week in advance when possible.',
+      'comp off': 'Compensatory Off: If you work on a holiday or weekend as required, you are eligible for a comp-off. Must be availed within 30 days. Apply through your manager with supporting details.',
+      'work from home': 'Work From Home (WFH): WFH can be availed up to 2 days per week with manager approval. Apply by 9 AM on the day itself. Ensure you are reachable during working hours.',
+      'leave balance': 'You can check your leave balance anytime on the HRMS portal under "My Leave". Balances update at the start of each month. Contact HR at hr@company.com for any discrepancies.',
+      'leave apply': 'To apply for leave: Log in to the HRMS portal → My Requests → Apply Leave → Select leave type and dates → Add reason → Submit. Your manager will receive an email for approval.',
+      'privilege leave': 'Privilege Leave (PL): 15 days per year accrued monthly. Apply at least 7 days in advance. Can be carried forward up to 30 days to next year. Eligible for encashment at resignation or retirement.'
+    }
+  },
+  payroll: {
+    keywords: ['salary','pay','payslip','slip','ctc','deduction','pf','provident','esi','tds','tax','increment','bonus','reimbursement','advance','loan','payroll','compensation','hike','appraisal'],
+    responses: {
+      'payslip': 'Payslips are generated on the 1st of every month and are available in the HRMS portal under "Payroll → My Payslips". You will also receive them via your official email. For any discrepancies, raise a ticket to payroll@company.com.',
+      'salary date': 'Salaries are credited on the last working day of every month directly to your registered bank account. In case of banking delays, it may reflect by the 2nd of the following month.',
+      'pf': 'Provident Fund (PF): 12% of your Basic Salary is deducted as your contribution. The company contributes an equal 12%. Your PF account is linked to your UAN number. Check your balance on the EPFO portal using your UAN.',
+      'tds': 'TDS (Tax Deducted at Source) is calculated based on your declared investments and annual income. Submit your investment proofs by December 31st to avoid higher deductions. For queries, contact payroll@company.com.',
+      'reimbursement': 'Reimbursements (travel, medical, internet) must be submitted within 30 days of the expense with original bills. Go to HRMS → My Requests → Reimbursement → Upload bills → Submit for manager approval.',
+      'salary increment': 'Annual increments are processed during the appraisal cycle (typically April). Increment percentage is based on performance rating and company policy. You will be notified via official communication.',
+      'bonus': 'Performance bonuses are paid annually post-appraisal. Festival advance (optional) is available once a year. Contact HR for details on your eligibility.',
+      'salary advance': 'Salary advances up to 1 month\'s net salary can be requested once per financial year. Apply through HRMS → My Requests → Salary Advance. Repayment is in equal EMIs over 6 months.',
+      'ctc': 'Your CTC (Cost to Company) breakdown is available in your offer letter and the HRMS portal under "My Profile → Compensation". It includes basic salary, HRA, allowances, PF, and variable components.'
+    }
+  },
+  onboarding: {
+    keywords: ['join','joining','onboard','new hire','document','bgv','background','induction','orientation','probation','confirmation','id card','laptop','access','email','offer'],
+    responses: {
+      'documents': 'Documents required at joining: Offer letter (signed), 2 passport photos, PAN card, Aadhaar card, Last 3 months payslips, Experience & relieving letters, Educational certificates, Bank account details, Cancelled cheque. Submit all to HR on Day 1.',
+      'probation': 'The probation period is 3 to 6 months depending on your role. Standard leave policies apply during probation. Performance is reviewed at the end of probation and a confirmation letter is issued on successful completion.',
+      'induction': 'Induction is scheduled in your first week. You will be introduced to company culture & values, team members, tools & systems, and HR policies. Your HR buddy will guide you through the first week.',
+      'bgv': 'Background Verification (BGV) is initiated after your offer is accepted. It covers employment history, education, and identity. Ensure all documents are accurate. BGV typically takes 7 to 10 working days.',
+      'laptop access': 'Your laptop and system access will be ready on Day 1. IT will set up your official email, communication tools, and required software. Raise any access issues with IT at it@company.com.',
+      'id card': 'Your ID card will be issued within the first week. It is mandatory to carry it on office premises at all times. For replacement, contact admin@company.com.',
+      'probation confirmation': 'Confirmation after probation is based on manager feedback and performance during the probation period. HR will share a formal confirmation letter upon successful completion.'
+    }
+  },
+  offboarding: {
+    keywords: ['resign','resignation','notice','exit','relieve','relieving','fnf','full final','clearance','noc','handover','last day','quit','leave company'],
+    responses: {
+      'resignation': 'To resign: Submit your resignation letter to your reporting manager via email, CC HR. Your notice period begins from the date HR accepts the resignation. Ensure you complete your handover properly before the last day.',
+      'notice period': 'Standard notice period is 30 to 90 days depending on your grade. Notice period buyout may be allowed with management approval. Check your offer letter for your specific notice period terms.',
+      'fnf': 'Full & Final Settlement (FnF) is processed within 45 days of your last working day. It includes pending salary, leave encashment, PF settlement, gratuity (if applicable), and any deductions. FnF is credited to your registered bank account.',
+      'relieving letter': 'Relieving and experience letters are issued within 7 to 10 working days after FnF clearance. Request via hr@company.com or collect directly from HR.',
+      'exit interview': 'An exit interview is scheduled in your last week. It is confidential and helps improve the organization. Please be open and honest — your feedback matters greatly.',
+      'handover': 'A proper handover document must be submitted before your last day covering all active projects, pending tasks, key contacts, and process documentation. Your manager will sign off on handover completion.',
+      'gratuity': 'Gratuity is applicable if you have completed 5 or more years of continuous service. It is calculated as: (15 × Last drawn salary × Years of service) ÷ 26. Gratuity is included in your FnF settlement.'
+    }
+  },
+  policy: {
+    keywords: ['policy','code of conduct','harassment','posh','grievance','dress code','working hours','attendance','late','overtime','travel','expense','rule','disciplinary','misconduct'],
+    responses: {
+      'working hours': 'Standard working hours are 9:00 AM to 6:00 PM, Monday to Friday. Flexible timings (9 to 11 AM start) are available with manager approval. Total 45 hours per week. Log attendance through HRMS daily.',
+      'attendance': 'Attendance is tracked via the HRMS portal. Mark attendance by 10 AM. More than 2 late marks in a month may result in a half-day deduction. Regularize attendance within 48 hours for any missed entries.',
+      'posh': 'The company has a zero-tolerance policy for sexual harassment at the workplace. An Internal Complaints Committee (ICC) is in place. Concerns can be reported confidentially to the ICC. Complaints are investigated within 90 days as per the POSH Act.',
+      'grievance': 'Grievance Redressal: Raise concerns first with your reporting manager. If unresolved, escalate to HR within 7 days. HR will investigate and respond within 14 working days. All grievances are handled confidentially.',
+      'code of conduct': 'All employees are expected to maintain professional conduct, respect colleagues, protect company data, avoid conflicts of interest, and represent the organization positively. Violations are subject to disciplinary action.',
+      'travel policy': 'Business travel must be pre-approved by your manager. Book tickets at least 3 days in advance through the preferred travel portal. Daily allowance and hotel limits vary by city tier. Refer to the Travel Policy document on the HR portal.',
+      'dress code': 'Business casual attire is expected on weekdays. Smart casuals are allowed on Fridays. Ensure clothing is professional and appropriate for client meetings. Refer to the Employee Handbook for detailed guidelines.',
+      'overtime': 'Overtime work must be pre-approved by your manager. Compensation for overtime is provided as comp-off or monetary compensation based on your grade. Refer to the compensation policy for details.'
+    }
+  },
+  engagement: {
+    keywords: ['engagement','fun','team','activity','feedback','survey','recognition','award','reward','birthday','anniversary','event','welfare','mental health','counsel','support','wellbeing','well-being','eap'],
+    responses: {
+      'recognition': 'Employee Recognition: Spot awards are given monthly for exceptional contributions. Annual awards are given during the company anniversary. Peer recognition can be done anytime through HRMS under "Appreciate a Colleague".',
+      'feedback': 'Employee feedback surveys are conducted quarterly. Responses are anonymous and used to improve workplace experience. Team-level feedback sessions are held bi-annually. Your voice shapes the culture.',
+      'mental health': 'We care about your wellbeing. The Employee Assistance Program (EAP) provides free, confidential counselling sessions for personal or professional challenges. Reach out to hr@company.com to access the EAP. You are not alone.',
+      'birthday anniversary': 'Birthdays and work anniversaries are celebrated! HR sends a recognition note and a small gift. Notify HR if your details are incorrect in the system so we don\'t miss your special day.',
+      'team events': 'Team outings, town halls, and engagement events are organized quarterly. Watch for announcements on the company communication channel. Participation is encouraged — these build the culture we all love.',
+      'welfare': 'Employee welfare benefits include health insurance (self + family), accidental insurance, meal allowances, internet reimbursement for WFH, and access to the EAP. Refer to the Benefits Handbook on the HR portal for full details.',
+      'eap': 'The Employee Assistance Program (EAP) offers free, confidential support for stress, anxiety, personal challenges, or any mental health concerns. Sessions are with certified counsellors. Contact hr@company.com to avail this benefit.'
+    }
+  }
+};
+
+const CHIPS = {
+  all: ['How do I apply for leave?', 'What is my PF contribution?', 'When is salary credited?', 'What documents are needed for joining?', 'How do I resign?', 'What is the POSH policy?'],
+  leave: ['How do I apply for leave?', 'What is casual leave?', 'How many sick leaves do I get?', 'What is comp off?', 'Can I work from home?', 'What is privilege leave?'],
+  payroll: ['When is salary credited?', 'How do I get my payslip?', 'What is my PF contribution?', 'How is TDS calculated?', 'How to claim reimbursement?', 'What is included in CTC?'],
+  onboarding: ['What documents do I need?', 'What is the probation period?', 'How does induction work?', 'When will I get my laptop?', 'What is BGV?'],
+  offboarding: ['How do I resign?', 'What is my notice period?', 'When will I get my FnF?', 'How do I get a relieving letter?', 'What is gratuity?'],
+  policy: ['What are working hours?', 'How does grievance work?', 'What is the POSH policy?', 'What is the travel policy?', 'What is the dress code?', 'How is overtime handled?'],
+  engagement: ['How does recognition work?', 'Is there mental health support?', 'What are welfare benefits?', 'How does feedback work?', 'What is EAP?']
+};
+
+let currentCat = 'all';
+const chatArea = document.getElementById('chat-area');
+const chipsWrap = document.getElementById('chips-wrap');
+
+function addMsg(text, isUser) {
+  const wrap = document.createElement('div');
+  wrap.className = 'msg ' + (isUser ? 'user' : 'bot');
+  const icon = document.createElement('div');
+  icon.className = 'msg-icon';
+  icon.textContent = isUser ? 'You' : 'HR';
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble';
+  bubble.textContent = text;
+  if (isUser) {
+    wrap.appendChild(icon); wrap.appendChild(bubble);
+  } else {
+    wrap.appendChild(icon); wrap.appendChild(bubble);
+  }
+  chatArea.appendChild(wrap);
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+function showTyping() {
+  const wrap = document.createElement('div');
+  wrap.className = 'msg bot'; wrap.id = 'typing-msg';
+  const icon = document.createElement('div');
+  icon.className = 'msg-icon'; icon.textContent = 'HR';
+  const t = document.createElement('div');
+  t.className = 'typing';
+  t.innerHTML = '<span></span><span></span><span></span>';
+  wrap.appendChild(icon); wrap.appendChild(t);
+  chatArea.appendChild(wrap);
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+function removeTyping() {
+  const t = document.getElementById('typing-msg');
+  if (t) t.remove();
+}
+
+function renderChips(cat) {
+  chipsWrap.innerHTML = '';
+  (CHIPS[cat] || CHIPS.all).forEach(q => {
+    const c = document.createElement('button');
+    c.className = 'chip'; c.textContent = q;
+    c.onclick = () => handleQuery(q);
+    chipsWrap.appendChild(c);
+  });
+}
+
+function filterCat(cat, btn) {
+  currentCat = cat;
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderChips(cat);
+}
+
+function findAnswer(query) {
+  const q = query.toLowerCase();
+  for (const cat of Object.values(KB)) {
+    for (const [key, answer] of Object.entries(cat.responses)) {
+      if (q.includes(key) || key.split(' ').every(w => q.includes(w))) return answer;
+    }
+  }
+  for (const cat of Object.values(KB)) {
+    if (cat.keywords.some(k => q.includes(k))) {
+      const keys = Object.keys(cat.responses);
+      return cat.responses[keys[0]];
+    }
+  }
+  return null;
+}
+
+function handleQuery(query) {
+  addMsg(query, true);
+  chipsWrap.innerHTML = '';
+  showTyping();
+  setTimeout(() => {
+    removeTyping();
+    const answer = findAnswer(query);
+    addMsg(answer || "I don't have a specific answer for that just yet. For personalised help, please reach out to HR at hr@company.com or raise a ticket on the HRMS portal. I'm always learning!", false);
+    setTimeout(() => renderChips(currentCat), 300);
+  }, 900);
+}
+
+function sendMsg() {
+  const input = document.getElementById('msg-input');
+  const val = input.value.trim();
+  if (!val) return;
+  input.value = '';
+  handleQuery(val);
+}
+
+addMsg("Hi there! I'm HRis, your AI-powered HR assistant. I can help with leave policies, payroll, onboarding, offboarding, company policies, and employee engagement. What can I help you with today?", false);
+renderChips('all');
+</script>
+</body>
+</html>
